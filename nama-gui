@@ -80,7 +80,7 @@ Zenity_Check () {
 			read -p "nama is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
 		done
 
-		if [[ -z $answer ]] || [[ $answer == [Y|y] ]]; then
+		if [[ -z $answer ]] || [[ $answer == "[Y|y]" ]]; then
 			## Check if the system has pacman package manager
 			if [[ -z $(command -v pacman) ]]; then
 				echo $line
@@ -129,7 +129,7 @@ Zenity_Check () {
 				echo "Please install zenity manually"
 			fi
 
-	elif [[ $answer == [N|n] ]]; then
+	elif [[ $answer == "[N|n]" ]]; then
 		echo $line
 		echo "Exiting - We hope you feel safe now"
 		exit 0
@@ -156,7 +156,7 @@ nama_check () {
 			read -p "nama is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
 		done
 
-		if [[ -z $answer ]] || [[ $answer == [Y|y] ]]; then
+		if [[ -z $answer ]] || [[ $answer == "[Y|y]" ]]; then
 			echo $line
 			echo "Didn't detect nama, cloning nama from github"
 			git clone https://github.com/chn555/nama &>> $logpath
@@ -180,13 +180,14 @@ nama_check () {
 				exit 1
 			fi
 
-		elif [[ $answer == [N|n] ]]; then
+		elif [[ $answer == "[N|n]" ]]; then
 			zenity --info --title="Network Automated MAnager" --text="Exiting - We hope you feel safe now" --width 250
 			exit 0
 		else
 			zenity --error --title="Network Automated MAnager" --text="Something went wrong somehow.\nExiting." --width 250
 			exit 1
 		fi
+	fi
 }
 
 ## Filter active network interfaces, ignoring any interfaces that are not
@@ -236,6 +237,9 @@ Network_Variables () {
 	--add-entry="DNS1" \
 	--add-entry="DNS2" \
 	--add-entry="Profile name"))
+	if [[ $? -eq 1 ]]; then
+		exit 0
+	fi
 
 	IPv4="${NetworkConfig[0]}"
 	Netmask="${NetworkConfig[1]}"
@@ -262,7 +266,7 @@ Network_Variable_Verify () {
 		Network_Variables
 	done
 
-	until [[ $gateway =~ $ip4 ]]; do
+	until [[ $Gateway =~ $ip4 ]]; do
 		zenity --error --title="Network Automated MAnager" \
 		--text="Invalid gateway.\nPlease insert a valid gateway address" --width 250
 		Network_Variables
@@ -277,6 +281,12 @@ Network_Variable_Verify () {
 	until [[ $IPv4 =~ $ip4 ]]; do
 		zenity --error --title="Network Automated MAnager" \
 		--text="Invalid secondary DNS.\nPlease insert a valid secondary DNS address" --width 250
+		Network_Variables
+	done
+
+	until ! [[ -z $ProfileName ]]; do
+		zenity --error --title="Network Automated MAnager" \
+		--text="Please enter a profile name" --width 250
 		Network_Variables
 	done
 }
