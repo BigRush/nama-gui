@@ -198,7 +198,9 @@ Network_Configuration () {
 			--text="Somthing went wrong while configuring the network settings.\nPlease check the log file under $logpath" --width=350
 			exit 1
 		fi
+	fi
 }
+
 ## Display help to the user
 Help_Function () {
 printf "%s" "\
