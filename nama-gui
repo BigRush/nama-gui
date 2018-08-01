@@ -156,6 +156,7 @@ Network_Active_Interfaces () {
 
 Network_Variables () {
 	NetworkConfig=($(zenity --forms --title="Network Automated MAnager" --text="Network Configuration" \
+	--separator=" " \
 	--add-entry="IP Address                                                " \
 	--add-entry="Netmask" \
 	--add-entry="Gateway" \
@@ -163,31 +164,31 @@ Network_Variables () {
 	--add-entry="DNS2" \
 	--add-entry="Profile name"))
 
-	IPv4="${NetworkConfig[0)}"
-	Netmask="${(NetworkConfig[1]}"
+	IPv4="${NetworkConfig[0]}"
+	Netmask="${NetworkConfig[1]}"
 	Gateway="${NetworkConfig[2]}"
 	DNS1="${NetworkConfig[3]}"
-	DNS2="${(NetworkConfig[4]}"
+	DNS2="${NetworkConfig[4]}"
 	ProfileName="${NetworkConfig[5]}"
 }
 
 Network_Configuration () {
 	if ! [[ -z $(nmcli con show $ProfileName) ]] &>> $logpath; then
-		zenity --question --title="Network Automated MAnager" --text="Profile name already exits, overwrite?" --width=250
-		if [[ $? -eq 0 ]]; then
-			nama -i $Interface -p $ProfileName --ipv4 $IPv4 --netmask $NetworkConfig --gateway $Gateway --dns1 $DNS1 --dns2 $DNS2 -f &>> $logpath
+			zenity --question --title="Network Automated MAnager" --text="Profile name already exits, overwrite?" --width=250
 			if [[ $? -eq 0 ]]; then
-				zenity --info --title="Network Automated MAnager" --text="Network configuration completed successfully" --width=350
-				exit 0
+				nama -i $Interface -p $ProfileName --ipv4 $IPv4 --netmask $NetworkConfig --gateway $Gateway --dns1 $DNS1 --dns2 $DNS2 -f &>> $logpath
+				if [[ $? -eq 0 ]]; then
+					zenity --info --title="Network Automated MAnager" --text="Network configuration completed successfully" --width=350
+					exit 0
+				else
+					zenity --error --title="Network Automated MAnager" \
+					--text="Somthing went wrong while configuring the network settings.\nPlease check the log file under $logpath" --width=350
+					exit 1
+				fi
 			else
-				zenity --error --title="Network Automated MAnager" \
-				--text="Somthing went wrong while configuring the network settings.\nPlease check the log file under $logpath" --width=350
-				exit 1
+				zenity --info --title="Network Automated MAnager" --text="Exiting - We hope you feel safe now" --width 250\
+				exit 0
 			fi
-		else
-			zenity --info --title="Network Automated MAnager" --text="Exiting - We hope you feel safe now" --width 250\
-			exit 0
-		fi
 	else
 		nama -i $Interface -p $ProfileName --ipv4 $IPv4 --netmask $NetworkConfig --gateway $Gateway --dns1 $DNS1 --dns2 $DNS2 &>> $logpath
 		if [[ $? -eq 0 ]]; then
@@ -255,7 +256,13 @@ Main () {
 	fi
 	## Verify that no argument is being used, and use the standard version
 	if [[ $Help_ARG -eq 0 ]] && [[ $Version_ARG -eq 0 ]]; then
-
+		Root_Check
+		Log_And_Variables
+		Zenity_Check
+		Filter_Active_Interfaces
+		Network_Active_Interfaces
+		Network_Variables
+		Network_Configuration
 
 	## check if only the Help flag is on
 	elif [[ $Help_ARG -ne 0 ]] ; then
