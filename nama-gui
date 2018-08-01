@@ -154,6 +154,7 @@ Network_Active_Interfaces () {
     fi
 }
 
+## Ask for network configuration from the user with zenity
 Network_Variables () {
 	NetworkConfig=($(zenity --forms --title="Network Automated MAnager" --text="Network Configuration" \
 	--separator=" " \
@@ -208,6 +209,7 @@ Network_Variable_Verify () {
 	done
 }
 
+## Configure network settings with nmcli 
 Network_Configuration () {
 	if ! [[ -z $(nmcli con show $ProfileName) ]] &>> $logpath; then
 			zenity --question --title="Network Automated MAnager" --text="Profile name already exits, overwrite?" --width=250
