@@ -72,49 +72,121 @@ Zenity_Check () {
 
 	## Check if zenity exists
 	if [[ -z $(command -v zenity) ]]; then
-		## Check if the system has pacman package manager
-		if [[ -z $(command -v pacman) ]]; then
+		read -p "zenity is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
+		until [[ -z $answer ]] || [[ $answer == "[Y|y]" ]] || \
+		[[ $answer == "[N|n]" ]]; do
 			echo $line
-			## Download zenity
-			pacman -S zenity --noconfirm &>> $logpath
+			echo "Invalid answer, try again..."
+			read -p "nama is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
+		done
 
-			## Validate zenity download
-			if [[ $? -eq 0 ]]; then
+		if [[ -z $answer ]] || [[ $answer == [Y|y] ]]; then
+			## Check if the system has pacman package manager
+			if [[ -z $(command -v pacman) ]]; then
 				echo $line
-				echo "Zenity downloaded successfully"
+				## Download zenity
+				pacman -S zenity --noconfirm &>> $logpath
+
+				## Validate zenity download
+				if [[ $? -eq 0 ]]; then
+					echo $line
+					echo "Zenity downloaded successfully"
+				else
+					echo $line
+					echo "Something went wrong while downloading zenity."
+					echo "Please check the log under $logpath"
+				fi
+
+			elif [[ -z $(command -v apt-get) ]]; then
+				echo $line
+				apt-get install zenity -y &>> $logpath
+
+				if [[ $? -eq 0 ]]; then
+					echo $line
+					echo "Zenity downloaded successfully"
+				else
+					echo $line
+					echo "Something went wrong while downloading zenity."
+					echo "Please check the log under $logpath"
+				fi
+
+			elif [[ -z $(command -v dnf) ]]; then
+				echo $line
+				dnf install zenity -y &>> $logpath
+
+				if [[ $? -eq 0 ]]; then
+					echo $line
+					echo "Zenity downloaded successfully"
+				else
+					echo $line
+					echo "Something went wrong while downloading zenity."
+					echo "Please check the log under $logpath"
+				fi
+
 			else
 				echo $line
-				echo "Something went wrong while downloading zenity."
-				echo "Please check the log under $logpath"
+				echo "Could not detect your system's package manager"
+				echo "Please install zenity manually"
 			fi
 
-		elif [[ -z $(command -v apt-get) ]]; then
-			echo $line
-			apt-get install zenity -y &>> $logpath
+	elif [[ $answer == [N|n] ]]; then
+		echo $line
+		echo "Exiting - We hope you feel safe now"
+		exit 0
 
-			if [[ $? -eq 0 ]]; then
-				echo $line
-				echo "Zenity downloaded successfully"
-			else
-				echo $line
-				echo "Something went wrong while downloading zenity."
-				echo "Please check the log under $logpath"
-			fi
-
-		elif [[ -z $(command -v dnf) ]]; then
-			echo $line
-			dnf install zenity -y &>> $logpath
-
-			if [[ $? -eq 0 ]]; then
-				echo $line
-				echo "Zenity downloaded successfully"
-			else
-				echo $line
-				echo "Something went wrong while downloading zenity."
-				echo "Please check the log under $logpath"
-			fi
-		fi
+	else
+		echo $line
+		echo "Something went wrong somehow..."
+		echo "Exiting..."
+		exit 1
 	fi
+
+	fi
+}
+
+## Check if nama is installed and if not ask the user if he wants to install it.
+nama_check () {
+
+	if [[ -z $(command -v nama) ]]; then
+		read -p "nama is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
+		until [[ -z $answer ]] || [[ $answer == "[Y|y]" ]] || \
+		[[ $answer == "[N|n]" ]]; do
+			echo $line
+			echo "Invalid answer, try again..."
+			read -p "nama is a dependency to run nama-gui,\nWould you like to install it?[Y/n]: " answer
+		done
+
+		if [[ -z $answer ]] || [[ $answer == [Y|y] ]]; then
+			echo $line
+			echo "Didn't detect nama, cloning nama from github"
+			git clone https://github.com/chn555/nama &>> $logpath
+			if [[ $? -eq 0 ]]; then
+				cd nama
+				echo $line
+				echo "Compiling the package..."
+				sudo echo
+				sudo make install &>> $logpath
+				if [[ $? -eq 0 ]]; then
+					zenity --info --title="Network Automated MAnager" --text="nama installed successfully!" --width=250
+					echo "nama installed successfully!"
+				else
+					zenity --error --title="Network Automated MAnager" \
+					--text="Somthing went wrong while compiling the package.\nPlease check the log file under $logpath" --width 350
+					exit 1
+				fi
+			else
+				zenity --error --title="Network Automated MAnager" \
+				--text="Somthing went wrong while cloning nama from git.\nPlease check the log file under $logpath" --width 350
+				exit 1
+			fi
+
+		elif [[ $answer == [N|n] ]]; then
+			zenity --info --title="Network Automated MAnager" --text="Exiting - We hope you feel safe now" --width 250
+			exit 0
+		else
+			zenity --error --title="Network Automated MAnager" --text="Something went wrong somehow.\nExiting." --width 250
+			exit 1
+		fi
 }
 
 ## Filter active network interfaces, ignoring any interfaces that are not
@@ -209,7 +281,7 @@ Network_Variable_Verify () {
 	done
 }
 
-## Configure network settings with nmcli 
+## Configure network settings with nmcli
 Network_Configuration () {
 	if ! [[ -z $(nmcli con show $ProfileName) ]] &>> $logpath; then
 			zenity --question --title="Network Automated MAnager" --text="Profile name already exits, overwrite?" --width=250
