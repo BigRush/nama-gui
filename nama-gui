@@ -14,7 +14,7 @@
 ################################################################################
 NAM_Version="1.0.0"
 
-OPTS=$(getopt -o hV --long runasroot,help -n 'parse-options' -- "$@")
+OPTS=$(getopt -o hV --long help,version,runasroot -n 'parse-options' -- "$@")
 if [ $? != 0 ] ; then
 	echo "Invalid arguments" >&2
 	echo "Use -h for help"
@@ -30,15 +30,7 @@ Runasroot_ARG=0
 while true; do
 	case "$1" in
 		-h|--help) Help_ARG=1; shift ;;
-		-f )	Force_ARG=1; shift ;;
-		-V ) Version_ARG=1; shift ;;
-		-i ) Interface_ARG=$2; shift 2;;
-		-p ) Profile_ARG=$2; shift 2 ;;
-		--ipv4 ) Ipv4_ARG=$2; shift 2 ;;
-		--gateway ) Gateway_ARG=$2; shift 2 ;;
-		--netmask ) Netmask_ARG=$2; shift 2 ;;
-		--dns1 ) DNS1_ARG=$2; shift 2 ;;
-		--dns2 ) DNS2_ARG=$2; shift 2 ;;
+		-V|--version ) Version_ARG=1; shift ;;
 		--runasroot ) Runasroot_ARG=1; shift ;;
 		-- ) shift; break ;;
 		-* | --*) Help_ARG=1; shift;;
@@ -73,6 +65,42 @@ Log_And_Variables () {
 	if ! [[ -e $logpath ]]; then
 		touch $logpath
 	fi
+}
+
+## Checking the environment the user is currenttly running on to determine which settings should be applied
+Distro_Check () {
+
+	## Put all the distros i want to check in an array
+	Distro_Array=(manjaro arch debian \"Ubuntu\" \"centos\" \"fedora\")
+	## set the initial success variable to 1 (0=success 1=failed)
+	status=1
+	## Go other each element of the array and check if that element (in this
+	## case the element will be a distro) exists in the distro check file
+	## (/etc/*-release), if it does set the Distro_Val to the current element
+	## ($i) and set the status to 0 (success), if it doesn't find any element
+	## of the array that matches the file, then status will remain 1 (failed)
+	## and prompt the user that the script did not find his distribution
+	for i in ${Distro_Array[@]}; do
+		DistroChk=$(cat /etc/*-release |grep ID |cut  -d '=' -f '2' |egrep "^$i$")
+		if ! [[ -z $DistroChk ]]; then
+		  	Distro_Val="$i"
+		    status=0
+		fi
+	done
+
+    if [[ $status -eq 1 ]]; then
+        printf "$line\n"
+        printf "Sorry, but the script did not find your distribution,\n"
+        printf "Exiting...\n"
+        printf "$line\n\n"
+        exit 1
+    fi
+}
+
+## Check if zenity is installed and if not install it.
+Zenity_Check () {
+
+
 }
 
 ## Check if kde is installed, if it is, notify the user that wireless profiles
