@@ -56,7 +56,7 @@ Log_And_Variables () {
 
 	####  Varibale	####
 	line=$(printf '%40s\n' | tr ' ' -)
-  	logpath=/tmp/NAM.log
+  	logpath=/tmp/nama.log
 	####  Varibale	####
 
 
@@ -76,7 +76,7 @@ Zenity_Check () {
 		if [[ -z $(command -v pacman) ]]; then
 			echo $line
 			## Download zenity
-			pacman -S zenity --noconfirm &> $logpath
+			pacman -S zenity --noconfirm &>> $logpath
 
 			## Validate zenity download
 			if [[ $? -eq 0 ]]; then
@@ -90,7 +90,7 @@ Zenity_Check () {
 
 		elif [[ -z $(command -v apt-get) ]]; then
 			echo $line
-			apt-get install zenity -y &> $logpath
+			apt-get install zenity -y &>> $logpath
 
 			if [[ $? -eq 0 ]]; then
 				echo $line
@@ -103,7 +103,7 @@ Zenity_Check () {
 
 		elif [[ -z $(command -v dnf) ]]; then
 			echo $line
-			dnf install zenity -y &> $logpath
+			dnf install zenity -y &>> $logpath
 
 			if [[ $? -eq 0 ]]; then
 				echo $line
@@ -145,12 +145,11 @@ Network_Active_Interfaces () {
     elif [[ ${#Filtered_Active_Interfaces[@]} -eq 1 ]]; then
         zenity --info --title="Network Automated MAnager" \
 		--text="Only ${Filtered_Active_Interfaces[0]} is connected, and will be used" --width=240
-        option=${Filtered_Active_Interfaces[0]}
-        sleep 1
+        Interface=${Filtered_Active_Interfaces[0]}
 
     else
-		option=$(zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
-		--column="Interface" \
+		Interface=$(zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
+		--column="Interface"	 \
 		"${Filtered_Active_Interfaces[@]}")
     fi
 }
@@ -161,18 +160,44 @@ Network_Variables () {
 	--add-entry="Netmask" \
 	--add-entry="Gateway" \
 	--add-entry="DNS1" \
-	--add-entry="DNS2"))
+	--add-entry="DNS2" \
+	--add-entry="Profile name"))
 
-	IPv4="$(NetworkConfig[0])"
-	Netmask="$(NetworkConfig[1])"
-	Gateway="$(NetworkConfig[2])"
-	DNS1="$(NetworkConfig[3])"
-	DNS2="$(NetworkConfig[4])"
+	IPv4="${NetworkConfig[0)}"
+	Netmask="${(NetworkConfig[1]}"
+	Gateway="${NetworkConfig[2]}"
+	DNS1="${NetworkConfig[3]}"
+	DNS2="${(NetworkConfig[4]}"
+	ProfileName="${NetworkConfig[5]}"
 }
 
 Network_Configuration () {
-
-	nama -
+	if ! [[ -z $(nmcli con show $ProfileName) ]] &>> $logpath; then
+		zenity --question --title="Network Automated MAnager" --text="Profile name already exits, overwrite?" --width=250
+		if [[ $? -eq 0 ]]; then
+			nama -i $Interface -p $ProfileName --ipv4 $IPv4 --netmask $NetworkConfig --gateway $Gateway --dns1 $DNS1 --dns2 $DNS2 -f &>> $logpath
+			if [[ $? -eq 0 ]]; then
+				zenity --info --title="Network Automated MAnager" --text="Network configuration completed successfully" --width=350
+				exit 0
+			else
+				zenity --error --title="Network Automated MAnager" \
+				--text="Somthing went wrong while configuring the network settings.\nPlease check the log file under $logpath" --width=350
+				exit 1
+			fi
+		else
+			zenity --info --title="Network Automated MAnager" --text="Exiting - We hope you feel safe now" --width 250\
+			exit 0
+		fi
+	else
+		nama -i $Interface -p $ProfileName --ipv4 $IPv4 --netmask $NetworkConfig --gateway $Gateway --dns1 $DNS1 --dns2 $DNS2 &>> $logpath
+		if [[ $? -eq 0 ]]; then
+			zenity --info --title="Network Automated MAnager" --text="Network configuration completed successfully" --width=350
+			exit 0
+		else
+			zenity --error --title="Network Automated MAnager" \
+			--text="Somthing went wrong while configuring the network settings.\nPlease check the log file under $logpath" --width=350
+			exit 1
+		fi
 }
 ## Display help to the user
 Help_Function () {
