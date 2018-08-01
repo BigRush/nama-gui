@@ -149,34 +149,10 @@ Network_Active_Interfaces () {
         sleep 1
 
     else
-		zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
+		option=$(zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
 		--column="Interface" \
-		"${Filtered_Active_Interfaces[@]}"
-        arrsize=$(expr 1 + $1)
-        select option in "${@:2}"; do
-            if [ "$REPLY" -eq "$arrsize" ]; then
-                echo "Exiting..."
-                break;
-            elif [ 1 -le "$REPLY" ] && [ "$REPLY" -le $((arrsize-1)) ]; then
-                echo "You selected $option which is option $REPLY"
-                sleep 1
-                echo ""
-                break;
-            else
-                echo "Incorrect Input: Select a number 1-$arrsize"
-            fi
-        done
+		"${Filtered_Active_Interfaces[@]}")
     fi
-
-
-
-
-
-
-
-
-
-
 }
 
 Network_Variables () {
