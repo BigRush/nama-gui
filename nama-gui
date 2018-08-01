@@ -70,10 +70,27 @@ Log_And_Variables () {
 ## Check if zenity is installed and if not install it.
 Zenity_Check () {
 
+	## Check if zenity exists
 	if [[ -z $(command -v zenity) ]]; then
+		## Check if the system has pacman package manager
 		if [[ -z $(command -v pacman) ]]; then
 			echo $line
+			## Download zenity
 			pacman -S zenity --noconfirm &> $logpath
+
+			## Validate zenity download
+			if [[ $? -eq 0 ]]; then
+				echo $line
+				echo "Zenity downloaded successfully"
+			else
+				echo $line
+				echo "Something went wrong while downloading zenity."
+				echo "Please check the log under $logpath"
+			fi
+
+		elif [[ -z $(command -v apt-get) ]]; then
+			echo $line
+			apt-get install zenity -y &> $logpath
 
 			if [[ $? -eq 0 ]]; then
 				echo $line
@@ -81,7 +98,23 @@ Zenity_Check () {
 			else
 				echo $line
 				echo "Something went wrong while downloading zenity."
-				echo "Please check the log unde $logpath"
+				echo "Please check the log under $logpath"
+			fi
+
+		elif [[ -z $(command -v dnf) ]]; then
+			echo $line
+			dnf install zenity -y &> $logpath
+
+			if [[ $? -eq 0 ]]; then
+				echo $line
+				echo "Zenity downloaded successfully"
+			else
+				echo $line
+				echo "Something went wrong while downloading zenity."
+				echo "Please check the log under $logpath"
+			fi
+		fi
+	fi
 }
 
 ## Check if kde is installed, if it is, notify the user that wireless profiles
