@@ -144,15 +144,14 @@ Network_Active_Interfaces () {
             exit 1
     elif [[ ${#Filtered_Active_Interfaces[@]} -eq 1 ]]; then
         zenity --info --title="Network Automated MAnager" \
-		 --text="Only ${Filtered_Active_Interfaces[0]} is connected, and will be used" --width=240
+		--text="Only ${Filtered_Active_Interfaces[0]} is connected, and will be used" --width=240
         option=${Filtered_Active_Interfaces[0]}
         sleep 1
-		elif [[ Scripted -eq 1 ]]; then
-		 		echo  "More then one interface was found,
-				this is not supported in non-interactive mode,
-				please use -i to select an interface"
+
     else
-        echo "Please select the interface you wish to use"
+		zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
+		--column="Interface" \
+		"${Filtered_Active_Interfaces[@]}"
         arrsize=$(expr 1 + $1)
         select option in "${@:2}"; do
             if [ "$REPLY" -eq "$arrsize" ]; then
@@ -176,9 +175,7 @@ Network_Active_Interfaces () {
 
 
 
-	zenity --list --title="Network Automated MAnager" --text="Network Configuration" \
-	--column="Interface" \
-	"${Filtered_Active_Interfaces[@]}"
+
 
 }
 
