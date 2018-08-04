@@ -333,7 +333,7 @@ Help_Function () {
 printf "%s" "\
 Usage: nama --option \"value\" --option \"value\"
 nama (Network Automated Manager)
-This script will use nmcli to set up static ip efortlessly.
+This script will use nmcli to set up network configuration with GUI efortlessly.
 
 Options:
 
