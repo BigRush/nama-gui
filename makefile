@@ -13,4 +13,4 @@ install:
 
 uninstall:
 	@rm -rf $(DESTDIR)$(PREFIX)/bin/nama-gui
-@rm -rf $(DESTDIR)$(MANDIR)/man1/nama-gui.1*
+	@rm -rf $(DESTDIR)$(MANDIR)/man1/nama-gui.1*
