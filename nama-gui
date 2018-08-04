@@ -8,7 +8,7 @@
 # License :  GPLv3
 #
 # Description :  NAM (Network Automated Manager).
-#				 This script will use nmcli to set up static ip efortlessly.
+#		 This script will use nmcli to set up static ip efortlessly.
 #
 # Version :  1.0.0
 ################################################################################
