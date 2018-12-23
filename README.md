@@ -16,6 +16,7 @@ This script requires nmcli
 
 ```
 git clone https://github.com/BigRush/nama-gui.git
+cd nama-gui
 bash nama-gui
 ```
 Alternatively, you can install it as a native command by running : 
